@@ -1,4 +1,4 @@
-use indicatif::ParallelProgressIterator;
+use indicatif::{ParallelProgressIterator, ProgressStyle};
 use rand::Rng;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
@@ -82,10 +82,11 @@ impl Camera {
     }
 
     pub fn render(&self, world: &Hittable, lights: &Hittable) {
+        let bar_style = ProgressStyle::with_template("{bar:40} {pos}/{len} {eta}").unwrap();
         println!("P3\n{} {}\n255", self.image_width, self.image_height);
         let image: Vec<Vec<_>> = (0..self.image_height)
             .into_par_iter()
-            .progress_count(self.image_height.into())
+            .progress_with_style(bar_style)
             .map(|j| {
                 // eprint!("\rScanlines remaining: {}   ", self.image_height - j);
                 (0..self.image_width)
