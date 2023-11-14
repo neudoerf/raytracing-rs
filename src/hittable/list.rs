@@ -1,4 +1,6 @@
-use crate::{aabb::Aabb, interval::Interval, ray::Ray};
+use rand::Rng;
+
+use crate::{aabb::Aabb, interval::Interval, point3::Point3, ray::Ray, vector3::Vector3};
 
 use super::{HitRecord, Hittable};
 
@@ -33,5 +35,18 @@ impl HittableList {
 
     pub fn bounding_box(&self) -> Aabb {
         self.bbox.clone()
+    }
+
+    pub fn pdf_value(&self, o: &Point3, v: &Vector3) -> f64 {
+        let weight = 1.0 / self.objects.len() as f64;
+        self.objects
+            .iter()
+            .map(|obj| obj.pdf_value(o, v) * weight)
+            .sum()
+    }
+
+    pub fn random(&self, o: &Point3) -> Vector3 {
+        let mut rng = rand::thread_rng();
+        return self.objects[rng.gen_range(0..self.objects.len())].random(o);
     }
 }

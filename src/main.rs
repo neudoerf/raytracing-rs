@@ -312,6 +312,7 @@ fn simple_light() -> (Hittable, Camera) {
 
 fn cornell_box() -> (Hittable, Hittable, Camera) {
     let mut world: Vec<Hittable> = vec![];
+    let mut lights: Vec<Hittable> = vec![];
 
     let red = Arc::new(Material::Lambertian(Lambertian::new_solid(Color::new(
         0.65, 0.05, 0.05,
@@ -369,17 +370,22 @@ fn cornell_box() -> (Hittable, Hittable, Camera) {
     ));
     world.push(box1);
 
-    let box2 = Quad::make_box(
-        &Point3::new(0.0, 0.0, 0.0),
-        &Point3::new(165.0, 165.0, 165.0),
-        white,
-    );
-    let box2 = Hittable::RotateY(RotateY::new(Box::new(box2), -18.0));
-    let box2 = Hittable::Translate(Translate::new(
-        Box::new(box2),
-        Vector3::new(130.0, 0.0, 65.0),
-    ));
-    world.push(box2);
+    // let box2 = Quad::make_box(
+    //     &Point3::new(0.0, 0.0, 0.0),
+    //     &Point3::new(165.0, 165.0, 165.0),
+    //     white,
+    // );
+    // let box2 = Hittable::RotateY(RotateY::new(Box::new(box2), -18.0));
+    // let box2 = Hittable::Translate(Translate::new(
+    //     Box::new(box2),
+    //     Vector3::new(130.0, 0.0, 65.0),
+    // ));
+    // world.push(box2);
+
+    let glass = Arc::new(Material::Dielectric(Dielectric::new(1.5)));
+    let glass_sphere = Sphere::new(Point3::new(190.0, 90.0, 190.0), 90.0, glass);
+    world.push(glass_sphere.clone());
+    lights.push(glass_sphere);
 
     let light = Quad::new(
         Point3::new(213.0, 554.0, 227.0),
@@ -388,6 +394,7 @@ fn cornell_box() -> (Hittable, Hittable, Camera) {
         light,
     );
     world.push(light.clone());
+    lights.push(light);
 
     let cam = Camera::new(
         600,
@@ -403,7 +410,7 @@ fn cornell_box() -> (Hittable, Hittable, Camera) {
         Color::new(0.0, 0.0, 0.0),
     );
 
-    (HittableList::new(world), light, cam)
+    (HittableList::new(world), HittableList::new(lights), cam)
 }
 
 fn cornell_smoke() -> (Hittable, Camera) {

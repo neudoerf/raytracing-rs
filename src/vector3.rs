@@ -25,7 +25,7 @@ impl Vector3 {
         }
     }
 
-    fn random_in_unit_sphere() -> Self {
+    pub fn random_in_unit_sphere() -> Self {
         loop {
             let p = Vector3::random(-1.0, 1.0);
             if p.length_squared() < 1.0 {

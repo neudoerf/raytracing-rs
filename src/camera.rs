@@ -3,8 +3,8 @@ use rand::Rng;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 use crate::{
-    color::Color, hittable::Hittable, interval::Interval, pdf, point3::Point3, ray::Ray,
-    vector3::Vector3,
+    color::Color, hittable::Hittable, interval::Interval, material::ScatterRecord, pdf,
+    point3::Point3, ray::Ray, vector3::Vector3,
 };
 
 pub struct Camera {
@@ -120,20 +120,24 @@ impl Camera {
                 let color_from_emission = rec.material.emitted(&r, &rec, rec.u, rec.v, &rec.p);
                 rec.material
                     .scatter(r, &rec)
-                    .and_then(|(attenuation, _scattered, _pdf_val)| {
-                        let p0 = pdf::Hittable::new(&lights, rec.p.clone());
-                        let p1 = pdf::Cosine::new(&rec.normal);
-                        let mixed_pdf = pdf::Mixture::new(&p0, &p1);
-                        let scattered = Ray::new(rec.p.clone(), mixed_pdf.generate(), r.time);
-                        let pdf_val = mixed_pdf.value(&scattered.dir);
+                    .and_then(|srec| match srec {
+                        ScatterRecord::Ray(attenuation, scatter) => {
+                            Some(attenuation * self.ray_color(&scatter, depth - 1, world, lights))
+                        }
+                        ScatterRecord::Pdf(attenuation, p) => {
+                            let light_pdf = pdf::Hittable::new(&lights, rec.p.clone());
+                            let p = pdf::Mixture::new(&light_pdf, &p);
+                            let scattered = Ray::new(rec.p.clone(), p.generate(), r.time);
+                            let pdf_val = p.value(&scattered.dir);
 
-                        let scattering_pdf = rec.material.scattering_pdf(r, &rec, &scattered);
-                        let sample_color = self.ray_color(&scattered, depth - 1, world, lights);
+                            let scattering_pdf = rec.material.scattering_pdf(r, &rec, &scattered);
+                            let sample_color = self.ray_color(&scattered, depth - 1, world, lights);
 
-                        let color_from_scatter =
-                            (attenuation * scattering_pdf * sample_color) / pdf_val;
+                            let color_from_scatter =
+                                (attenuation * scattering_pdf * sample_color) / pdf_val;
 
-                        Some(&color_from_emission + color_from_scatter)
+                            Some(&color_from_emission + color_from_scatter)
+                        }
                     })
                     .or(Some(color_from_emission))
             })

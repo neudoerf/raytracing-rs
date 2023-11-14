@@ -3,9 +3,19 @@ use std::{f64::consts::PI, sync::Arc};
 use rand::Rng;
 
 use crate::{
-    color::Color, hittable::HitRecord, onb::Onb, point3::Point3, ray::Ray, texture::Texture,
+    color::Color,
+    hittable::HitRecord,
+    pdf::{self, Pdf},
+    point3::Point3,
+    ray::Ray,
+    texture::Texture,
     vector3::Vector3,
 };
+
+pub enum ScatterRecord<'a> {
+    Pdf(Color, Pdf<'a>),
+    Ray(Color, Ray),
+}
 
 #[derive(Clone, Debug)]
 pub struct Lambertian {
@@ -43,11 +53,11 @@ pub enum Material {
 }
 
 impl Material {
-    pub fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray, f64)> {
+    pub fn scatter<'a>(&'a self, r_in: &Ray, rec: &'a HitRecord) -> Option<ScatterRecord> {
         match self {
             Material::Lambertian(l) => l.scatter(r_in, rec),
-            // Material::Metal(m) => m.scatter(r_in, rec),
-            // Material::Dielectric(d) => d.scatter(r_in, rec),
+            Material::Metal(m) => m.scatter(r_in, rec),
+            Material::Dielectric(d) => d.scatter(r_in, rec),
             Material::Isotropic(i) => i.scatter(r_in, rec),
             _ => None,
         }
@@ -79,18 +89,10 @@ impl Lambertian {
         }
     }
 
-    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray, f64)> {
-        let uvw = Onb::new(&rec.normal);
-        let mut scatter_dir = uvw.local(&Vector3::random_cosine_dir());
-
-        if scatter_dir.near_zero() {
-            scatter_dir = rec.normal.clone();
-        }
-
-        let scattered = Ray::new(rec.p.clone(), scatter_dir, r_in.time);
+    fn scatter<'a>(&'a self, _r_in: &Ray, rec: &'a HitRecord) -> Option<ScatterRecord> {
         let attenuation = self.albedo.value(rec.u, rec.v, &rec.p);
-        let pdf = uvw.w.dot(&scattered.dir) / PI;
-        Some((attenuation, scattered, pdf))
+        let pdf = pdf::Cosine::new(&rec.normal);
+        Some(ScatterRecord::Pdf(attenuation, pdf))
     }
 
     fn scattering_pdf(&self, _r_in: &Ray, rec: &HitRecord, scattered: &Ray) -> f64 {
@@ -108,19 +110,15 @@ impl Metal {
         Metal { albedo, fuzz }
     }
 
-    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<ScatterRecord> {
         let reflected = r_in.dir.unit_vector().reflect(&rec.normal);
         let scattered = Ray::new(
             rec.p.clone(),
-            reflected + self.fuzz * Vector3::random_unit_vector(),
+            reflected + self.fuzz * Vector3::random_in_unit_sphere(),
             r_in.time,
         );
 
-        if scattered.dir.dot(&rec.normal) > 0.0 {
-            Some((self.albedo.clone(), scattered))
-        } else {
-            None
-        }
+        Some(ScatterRecord::Ray(self.albedo.clone(), scattered))
     }
 }
 
@@ -134,7 +132,7 @@ impl Dielectric {
         r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
     }
 
-    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<ScatterRecord> {
         let refraction_ratio = if rec.front_face {
             1.0 / self.ir
         } else {
@@ -152,7 +150,7 @@ impl Dielectric {
             } else {
                 unit_direction.refract(&rec.normal, refraction_ratio)
             };
-        Some((
+        Some(ScatterRecord::Ray(
             Color::new(1.0, 1.0, 1.0),
             Ray::new(rec.p.clone(), direction, r_in.time),
         ))
@@ -164,12 +162,10 @@ impl Isotropic {
         Isotropic { albedo }
     }
 
-    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray, f64)> {
-        let pdf = 1.0 / (4.0 * PI);
-        Some((
+    fn scatter(&self, _r_in: &Ray, rec: &HitRecord) -> Option<ScatterRecord> {
+        Some(ScatterRecord::Pdf(
             self.albedo.value(rec.u, rec.v, &rec.p),
-            Ray::new(rec.p.clone(), Vector3::random_unit_vector(), r_in.time),
-            pdf,
+            pdf::Sphere::new(),
         ))
     }
 }
@@ -179,7 +175,7 @@ impl DiffuseLight {
         DiffuseLight { emit }
     }
 
-    fn emitted(&self, r_in: &Ray, rec: &HitRecord, u: f64, v: f64, p: &Point3) -> Color {
+    fn emitted(&self, _r_in: &Ray, rec: &HitRecord, u: f64, v: f64, p: &Point3) -> Color {
         if !rec.front_face {
             Color::new(0.0, 0.0, 0.0)
         } else {

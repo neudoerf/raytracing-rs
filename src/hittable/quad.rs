@@ -125,9 +125,9 @@ impl Quad {
         self.bbox.clone()
     }
 
-    pub fn pdf_value(&self, orig: &Point3, v: &Vector3) -> f64 {
+    pub fn pdf_value(&self, o: &Point3, v: &Vector3) -> f64 {
         self.hit(
-            &Ray::new(orig.clone(), v.clone(), 0.0),
+            &Ray::new(o.clone(), v.clone(), 0.0),
             Interval::new(0.001, f64::MAX),
         )
         .and_then(|rec| {

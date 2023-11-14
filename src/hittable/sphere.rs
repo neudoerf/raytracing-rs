@@ -1,7 +1,10 @@
 use std::{f64::consts::PI, sync::Arc};
 
+use rand::Rng;
+
 use crate::{
-    aabb::Aabb, interval::Interval, material::Material, point3::Point3, ray::Ray, vector3::Vector3,
+    aabb::Aabb, interval::Interval, material::Material, onb::Onb, point3::Point3, ray::Ray,
+    vector3::Vector3,
 };
 
 use super::{HitRecord, Hittable};
@@ -89,6 +92,41 @@ impl Sphere {
     pub fn bounding_box(&self) -> Aabb {
         self.bbox.clone()
     }
+
+    pub fn pdf_value(&self, o: &Point3, v: &Vector3) -> f64 {
+        self.hit(
+            &Ray::new(o.clone(), v.clone(), 0.0),
+            Interval::new(0.001, f64::MAX),
+        )
+        .and_then(|_| {
+            let cos_theta_max =
+                (1.0 - self.radius * self.radius / (&self.center1 - o).length_squared()).sqrt();
+            let solid_angle = 2.0 * PI * (1.0 - cos_theta_max);
+
+            Some(1.0 / solid_angle)
+        })
+        .unwrap_or(0.0)
+    }
+
+    pub fn random(&self, o: &Point3) -> Vector3 {
+        let dir = &self.center1 - o;
+        let distance_squared = dir.length_squared();
+        let uvw = Onb::new(&dir);
+        uvw.local(&random_to_sphere(self.radius, distance_squared))
+    }
+}
+
+fn random_to_sphere(radius: f64, distance_squared: f64) -> Vector3 {
+    let mut rng = rand::thread_rng();
+    let r1: f64 = rng.gen();
+    let r2: f64 = rng.gen();
+    let z = 1.0 + r2 * ((1.0 - radius * radius / distance_squared).sqrt() - 1.0);
+
+    let phi = 2.0 * PI * r1;
+    let x = phi.cos() * (1.0 - z * z).sqrt();
+    let y = phi.sin() * (1.0 - z * z).sqrt();
+
+    Vector3::new(x, y, z)
 }
 
 fn get_sphere_uv(p: &Point3) -> (f64, f64) {

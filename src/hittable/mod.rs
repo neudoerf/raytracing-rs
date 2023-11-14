@@ -63,16 +63,20 @@ impl Hittable {
         }
     }
 
-    pub fn pdf_value(&self, orig: &Point3, v: &Vector3) -> f64 {
+    pub fn pdf_value(&self, o: &Point3, v: &Vector3) -> f64 {
         match self {
-            Hittable::Quad(q) => q.pdf_value(orig, v),
+            Hittable::Sphere(s) => s.pdf_value(o, v),
+            Hittable::Quad(q) => q.pdf_value(o, v),
+            Hittable::List(l) => l.pdf_value(o, v),
             _ => 0.0,
         }
     }
 
     pub fn random(&self, orig: &Point3) -> Vector3 {
         match self {
+            Hittable::Sphere(s) => s.random(orig),
             Hittable::Quad(q) => q.random(orig),
+            Hittable::List(l) => l.random(orig),
             _ => Vector3::new(1.0, 0.0, 0.0),
         }
     }
