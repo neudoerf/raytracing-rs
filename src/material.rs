@@ -93,8 +93,13 @@ impl Lambertian {
         Some((attenuation, scattered, pdf))
     }
 
-    fn scattering_pdf(&self, _r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f64 {
-        1.0 / (2.0 * PI)
+    fn scattering_pdf(&self, _r_in: &Ray, rec: &HitRecord, scattered: &Ray) -> f64 {
+        let cos_theta = rec.normal.dot(&scattered.dir.unit_vector());
+        if cos_theta < 0.0 {
+            0.0
+        } else {
+            cos_theta / PI
+        }
     }
 }
 

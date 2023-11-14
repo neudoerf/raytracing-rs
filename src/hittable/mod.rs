@@ -62,6 +62,20 @@ impl Hittable {
             Hittable::BvhNode(b) => b.bounding_box(),
         }
     }
+
+    pub fn pdf_value(&self, orig: &Point3, v: &Vector3) -> f64 {
+        match self {
+            Hittable::Quad(q) => q.pdf_value(orig, v),
+            _ => 0.0,
+        }
+    }
+
+    pub fn random(&self, orig: &Point3) -> Vector3 {
+        match self {
+            Hittable::Quad(q) => q.random(orig),
+            _ => Vector3::new(1.0, 0.0, 0.0),
+        }
+    }
 }
 
 impl Translate {

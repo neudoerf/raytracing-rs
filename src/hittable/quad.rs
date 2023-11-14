@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use rand::Rng;
+
 use crate::{
     aabb::Aabb, interval::Interval, material::Material, point3::Point3, ray::Ray, vector3::Vector3,
 };
@@ -16,6 +18,7 @@ pub struct Quad {
     normal: Vector3,
     d: f64,
     w: Vector3,
+    area: f64,
 }
 
 impl Quad {
@@ -34,6 +37,7 @@ impl Quad {
             normal,
             d,
             w,
+            area: n.length(),
         })
     }
 
@@ -119,6 +123,25 @@ impl Quad {
 
     pub fn bounding_box(&self) -> Aabb {
         self.bbox.clone()
+    }
+
+    pub fn pdf_value(&self, orig: &Point3, v: &Vector3) -> f64 {
+        self.hit(
+            &Ray::new(orig.clone(), v.clone(), 0.0),
+            Interval::new(0.001, f64::MAX),
+        )
+        .and_then(|rec| {
+            let distance_squared = rec.t * rec.t * v.length_squared();
+            let cos = (v.dot(&rec.normal) / v.length()).abs();
+            Some(distance_squared / (cos * self.area))
+        })
+        .unwrap_or(0.0)
+    }
+
+    pub fn random(&self, orig: &Point3) -> Vector3 {
+        let mut rng = rand::thread_rng();
+        let p = &self.q + (rng.gen::<f64>() * &self.u) + (rng.gen::<f64>() * &self.v);
+        p - orig
     }
 
     fn is_interior(&self, a: f64, b: f64) -> Option<(f64, f64)> {

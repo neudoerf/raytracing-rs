@@ -55,8 +55,8 @@ impl Vector3 {
 
     pub fn random_cosine_dir() -> Self {
         let mut rng = rand::thread_rng();
-        let r1: f64 = rng.gen();
-        let r2: f64 = rng.gen();
+        let r1: f64 = rng.gen_range(0.0..1.0);
+        let r2: f64 = rng.gen_range(0.0..1.0);
 
         let phi = 2.0 * PI * r1;
         let x = phi.cos() * r2.sqrt();

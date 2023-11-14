@@ -5,6 +5,7 @@ pub mod hittable;
 pub mod interval;
 pub mod material;
 pub mod onb;
+pub mod pdf;
 pub mod perlin;
 pub mod point3;
 pub mod ray;

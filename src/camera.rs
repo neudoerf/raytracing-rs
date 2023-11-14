@@ -3,7 +3,7 @@ use rand::Rng;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 use crate::{
-    color::Color, hittable::Hittable, interval::Interval, point3::Point3, ray::Ray,
+    color::Color, hittable::Hittable, interval::Interval, pdf, point3::Point3, ray::Ray,
     vector3::Vector3,
 };
 
@@ -81,7 +81,7 @@ impl Camera {
         }
     }
 
-    pub fn render(&self, world: &Hittable) {
+    pub fn render(&self, world: &Hittable, lights: &Hittable) {
         println!("P3\n{} {}\n255", self.image_width, self.image_height);
         let image: Vec<Vec<_>> = (0..self.image_height)
             .into_par_iter()
@@ -95,7 +95,7 @@ impl Camera {
                             .into_par_iter()
                             .map(|_| {
                                 let r = self.get_ray(i, j);
-                                self.ray_color(&r, self.max_depth, world)
+                                self.ray_color(&r, self.max_depth, world, lights)
                             })
                             .reduce(|| Color::new(0.0, 0.0, 0.0), |a, b| a + b)
                     })
@@ -109,7 +109,7 @@ impl Camera {
         })
     }
 
-    fn ray_color(&self, r: &Ray, depth: u32, world: &Hittable) -> Color {
+    fn ray_color(&self, r: &Ray, depth: u32, world: &Hittable, lights: &Hittable) -> Color {
         if depth <= 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
@@ -120,36 +120,20 @@ impl Camera {
                 let color_from_emission = rec.material.emitted(&r, &rec, rec.u, rec.v, &rec.p);
                 rec.material
                     .scatter(r, &rec)
-                    .and_then(|(attenuation, _scattered, pdf)| {
-                        let mut rng = rand::thread_rng();
-                        let on_light = Point3::new(
-                            rng.gen_range(213.0..343.0),
-                            554.0,
-                            rng.gen_range(227.0..332.0),
-                        );
-                        let to_light = &on_light - &rec.p;
-                        let distance_squared = to_light.length_squared();
-                        let to_light = to_light.unit_vector();
-                        if to_light.dot(&rec.normal) < 0.0 {
-                            Some(color_from_emission.clone())
-                        } else {
-                            let light_area = (343.0 - 213.0) * (332.0 - 227.0);
-                            let light_cosine = to_light.y.abs();
-                            if light_cosine < 0.000001 {
-                                Some(color_from_emission.clone())
-                            } else {
-                                let pdf = distance_squared / (light_cosine * light_area);
-                                let scattered = Ray::new(rec.p.clone(), to_light, r.time);
-                                let scattering_pdf =
-                                    rec.material.scattering_pdf(r, &rec, &scattered);
+                    .and_then(|(attenuation, _scattered, _pdf_val)| {
+                        let p0 = pdf::Hittable::new(&lights, rec.p.clone());
+                        let p1 = pdf::Cosine::new(&rec.normal);
+                        let mixed_pdf = pdf::Mixture::new(&p0, &p1);
+                        let scattered = Ray::new(rec.p.clone(), mixed_pdf.generate(), r.time);
+                        let pdf_val = mixed_pdf.value(&scattered.dir);
 
-                                let color_from_scatter = (attenuation
-                                    * scattering_pdf
-                                    * self.ray_color(&scattered, depth - 1, world))
-                                    / pdf;
-                                Some(&color_from_emission + color_from_scatter)
-                            }
-                        }
+                        let scattering_pdf = rec.material.scattering_pdf(r, &rec, &scattered);
+                        let sample_color = self.ray_color(&scattered, depth - 1, world, lights);
+
+                        let color_from_scatter =
+                            (attenuation * scattering_pdf * sample_color) / pdf_val;
+
+                        Some(&color_from_emission + color_from_scatter)
                     })
                     .or(Some(color_from_emission))
             })

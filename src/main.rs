@@ -310,7 +310,7 @@ fn simple_light() -> (Hittable, Camera) {
     (HittableList::new(world), cam)
 }
 
-fn cornell_box() -> (Hittable, Camera) {
+fn cornell_box() -> (Hittable, Hittable, Camera) {
     let mut world: Vec<Hittable> = vec![];
 
     let red = Arc::new(Material::Lambertian(Lambertian::new_solid(Color::new(
@@ -357,13 +357,6 @@ fn cornell_box() -> (Hittable, Camera) {
         Arc::clone(&white),
     ));
 
-    world.push(Quad::new(
-        Point3::new(213.0, 554.0, 227.0),
-        Vector3::new(130.0, 0.0, 0.0),
-        Vector3::new(0.0, 0.0, 105.0),
-        light,
-    ));
-
     let box1 = Quad::make_box(
         &Point3::new(0.0, 0.0, 0.0),
         &Point3::new(165.0, 330.0, 165.0),
@@ -388,6 +381,14 @@ fn cornell_box() -> (Hittable, Camera) {
     ));
     world.push(box2);
 
+    let light = Quad::new(
+        Point3::new(213.0, 554.0, 227.0),
+        Vector3::new(130.0, 0.0, 0.0),
+        Vector3::new(0.0, 0.0, 105.0),
+        light,
+    );
+    world.push(light.clone());
+
     let cam = Camera::new(
         600,
         1.0,
@@ -397,12 +398,12 @@ fn cornell_box() -> (Hittable, Camera) {
         40.0,
         0.0,
         1.0,
-        10,
+        1000,
         50,
         Color::new(0.0, 0.0, 0.0),
     );
 
-    (HittableList::new(world), cam)
+    (HittableList::new(world), light, cam)
 }
 
 fn cornell_smoke() -> (Hittable, Camera) {
@@ -639,18 +640,19 @@ fn final_scene(image_width: u32, samples_per_pixel: usize, max_depth: u32) -> (H
 fn main() {
     let args: Vec<String> = env::args().collect();
     let scene: usize = args.get(1).unwrap().parse().unwrap();
-    let (world, cam) = match scene {
-        1 => random_spheres(400, 100),
-        2 => two_spheres(),
-        3 => earth(),
-        4 => two_perlin_spheres(),
-        5 => quads(),
-        6 => simple_light(),
+    let (world, lights, cam) = match scene {
+        // 1 => random_spheres(400, 100),
+        // 2 => two_spheres(),
+        // 3 => earth(),
+        // 4 => two_perlin_spheres(),
+        // 5 => quads(),
+        // 6 => simple_light(),
         7 => cornell_box(),
-        8 => cornell_smoke(),
-        9 => final_scene(1200, 10000, 40),
-        _ => final_scene(600, 100, 50),
+        // 8 => cornell_smoke(),
+        // 9 => final_scene(1200, 10000, 40),
+        // _ => final_scene(600, 100, 50),
+        _ => panic!(),
     };
 
-    cam.render(&world);
+    cam.render(&world, &lights);
 }
