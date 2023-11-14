@@ -9,16 +9,13 @@ pub struct HittableList {
 }
 
 impl HittableList {
-    pub fn new() -> Self {
-        HittableList {
-            objects: vec![],
-            bbox: Aabb::new_empty(),
-        }
-    }
-
-    pub fn add(&mut self, object: Hittable) {
-        self.bbox = Aabb::new_from_aabbs(&self.bbox, &object.bounding_box());
-        self.objects.push(object);
+    pub fn new(objects: Vec<Hittable>) -> Hittable {
+        let bbox = objects
+            .iter()
+            .map(|h| h.bounding_box())
+            .reduce(|acc, b| Aabb::new_from_aabbs(&acc, &b))
+            .unwrap_or(Aabb::new_empty());
+        Hittable::List(HittableList { objects, bbox })
     }
 
     pub fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {

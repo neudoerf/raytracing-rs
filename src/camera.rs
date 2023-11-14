@@ -3,7 +3,7 @@ use rand::Rng;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 use crate::{
-    color::Color, hittable::HittableList, interval::Interval, point3::Point3, ray::Ray,
+    color::Color, hittable::Hittable, interval::Interval, point3::Point3, ray::Ray,
     vector3::Vector3,
 };
 
@@ -81,7 +81,7 @@ impl Camera {
         }
     }
 
-    pub fn render(&self, world: &HittableList) {
+    pub fn render(&self, world: &Hittable) {
         println!("P3\n{} {}\n255", self.image_width, self.image_height);
         let image: Vec<Vec<_>> = (0..self.image_height)
             .into_par_iter()
@@ -109,7 +109,7 @@ impl Camera {
         })
     }
 
-    fn ray_color(&self, r: &Ray, depth: u32, world: &HittableList) -> Color {
+    fn ray_color(&self, r: &Ray, depth: u32, world: &Hittable) -> Color {
         if depth <= 0 {
             return Color::new(0.0, 0.0, 0.0);
         }

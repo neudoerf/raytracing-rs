@@ -38,7 +38,7 @@ impl Quad {
     }
 
     pub fn make_box(a: &Point3, b: &Point3, mat: Arc<Material>) -> Hittable {
-        let mut sides = HittableList::new();
+        let mut sides: Vec<Hittable> = vec![];
 
         let min = Point3::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z));
         let max = Point3::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z));
@@ -47,44 +47,44 @@ impl Quad {
         let dy = Vector3::new(0.0, max.y - min.y, 0.0);
         let dz = Vector3::new(0.0, 0.0, max.z - min.z);
 
-        sides.add(Quad::new(
+        sides.push(Quad::new(
             Point3::new(min.x, min.y, max.z),
             dx.clone(),
             dy.clone(),
             Arc::clone(&mat),
         ));
-        sides.add(Quad::new(
+        sides.push(Quad::new(
             Point3::new(max.x, min.y, max.z),
             -&dz,
             dy.clone(),
             Arc::clone(&mat),
         ));
-        sides.add(Quad::new(
+        sides.push(Quad::new(
             Point3::new(max.x, min.y, min.z),
             -&dx,
             dy.clone(),
             Arc::clone(&mat),
         ));
-        sides.add(Quad::new(
+        sides.push(Quad::new(
             Point3::new(min.x, min.y, min.z),
             dz.clone(),
             dy,
             Arc::clone(&mat),
         ));
-        sides.add(Quad::new(
+        sides.push(Quad::new(
             Point3::new(min.x, max.y, max.z),
             dx.clone(),
             -&dz,
             Arc::clone(&mat),
         ));
-        sides.add(Quad::new(
+        sides.push(Quad::new(
             Point3::new(min.x, min.y, min.z),
             dx,
             dz,
             Arc::clone(&mat),
         ));
 
-        Hittable::List(sides)
+        HittableList::new(sides)
     }
 
     pub fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
