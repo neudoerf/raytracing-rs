@@ -19,13 +19,13 @@ pub struct Quad {
 }
 
 impl Quad {
-    pub fn new(q: Point3, u: Vector3, v: Vector3, material: Arc<Material>) -> Self {
+    pub fn new(q: Point3, u: Vector3, v: Vector3, material: Arc<Material>) -> Hittable {
         let n = u.cross(&v);
         let normal = n.unit_vector();
         let d = normal.dot(&(&q).into());
         let w = &n / n.dot(&n);
         let bbox = Aabb::new_from_points(&q, &(&q + &u + &v)).pad();
-        Quad {
+        Hittable::Quad(Quad {
             q,
             u,
             v,
@@ -34,7 +34,7 @@ impl Quad {
             normal,
             d,
             w,
-        }
+        })
     }
 
     pub fn make_box(a: &Point3, b: &Point3, mat: Arc<Material>) -> Hittable {
@@ -47,42 +47,42 @@ impl Quad {
         let dy = Vector3::new(0.0, max.y - min.y, 0.0);
         let dz = Vector3::new(0.0, 0.0, max.z - min.z);
 
-        sides.add(Hittable::Quad(Quad::new(
+        sides.add(Quad::new(
             Point3::new(min.x, min.y, max.z),
             dx.clone(),
             dy.clone(),
             Arc::clone(&mat),
-        )));
-        sides.add(Hittable::Quad(Quad::new(
+        ));
+        sides.add(Quad::new(
             Point3::new(max.x, min.y, max.z),
             -&dz,
             dy.clone(),
             Arc::clone(&mat),
-        )));
-        sides.add(Hittable::Quad(Quad::new(
+        ));
+        sides.add(Quad::new(
             Point3::new(max.x, min.y, min.z),
             -&dx,
             dy.clone(),
             Arc::clone(&mat),
-        )));
-        sides.add(Hittable::Quad(Quad::new(
+        ));
+        sides.add(Quad::new(
             Point3::new(min.x, min.y, min.z),
             dz.clone(),
             dy,
             Arc::clone(&mat),
-        )));
-        sides.add(Hittable::Quad(Quad::new(
+        ));
+        sides.add(Quad::new(
             Point3::new(min.x, max.y, max.z),
             dx.clone(),
             -&dz,
             Arc::clone(&mat),
-        )));
-        sides.add(Hittable::Quad(Quad::new(
+        ));
+        sides.add(Quad::new(
             Point3::new(min.x, min.y, min.z),
             dx,
             dz,
             Arc::clone(&mat),
-        )));
+        ));
 
         Hittable::List(sides)
     }

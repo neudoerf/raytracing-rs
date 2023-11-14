@@ -4,7 +4,7 @@ use crate::{
     aabb::Aabb, interval::Interval, material::Material, point3::Point3, ray::Ray, vector3::Vector3,
 };
 
-use super::HitRecord;
+use super::{HitRecord, Hittable};
 
 #[derive(Clone)]
 pub struct Sphere {
@@ -16,15 +16,15 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64, material: Arc<Material>) -> Self {
+    pub fn new(center: Point3, radius: f64, material: Arc<Material>) -> Hittable {
         let rvec = Vector3::new(radius, radius, radius);
-        Sphere {
+        Hittable::Sphere(Sphere {
             center1: center.clone(),
             radius,
             material,
             center_vec: None,
             bbox: Aabb::new_from_points(&(&center - &rvec), &(center + rvec)),
-        }
+        })
     }
 
     pub fn new_moving(

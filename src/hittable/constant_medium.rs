@@ -21,12 +21,12 @@ pub struct ConstantMedium {
 }
 
 impl ConstantMedium {
-    pub fn new(boundary: Arc<Hittable>, d: f64, a: Arc<Texture>) -> Self {
-        ConstantMedium {
+    pub fn new(boundary: Arc<Hittable>, d: f64, a: Arc<Texture>) -> Hittable {
+        Hittable::ConstantMedium(ConstantMedium {
             boundary,
             neg_inv_density: (-1.0 / d),
             phase_func: Arc::new(Material::Isotropic(Isotropic::new(a))),
-        }
+        })
     }
 
     pub fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {

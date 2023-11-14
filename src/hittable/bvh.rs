@@ -14,7 +14,7 @@ pub struct BvhNode {
 }
 
 impl BvhNode {
-    pub fn new(src_objects: &Vec<Hittable>, start: usize, end: usize) -> Self {
+    pub fn new(src_objects: &Vec<Hittable>, start: usize, end: usize) -> Hittable {
         let mut objects = src_objects.clone();
         let mut rng = rand::thread_rng();
         let axis: usize = rng.gen_range(0..=2);
@@ -33,18 +33,18 @@ impl BvhNode {
             objects[start..end].sort_unstable_by(|a, b| box_compare(a, b, axis));
             let mid = start + object_span / 2;
             (
-                Hittable::BvhNode(BvhNode::new(&objects, start, mid)),
-                Hittable::BvhNode(BvhNode::new(&objects, mid, end)),
+                BvhNode::new(&objects, start, mid),
+                BvhNode::new(&objects, mid, end),
             )
         };
 
         let bbox = Aabb::new_from_aabbs(&left.bounding_box(), &right.bounding_box());
 
-        BvhNode {
+        Hittable::BvhNode(BvhNode {
             left: Box::new(left),
             right: Box::new(right),
             bbox,
-        }
+        })
     }
 
     pub fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
