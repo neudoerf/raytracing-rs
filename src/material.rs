@@ -3,7 +3,8 @@ use std::{f64::consts::PI, sync::Arc};
 use rand::Rng;
 
 use crate::{
-    color::Color, hittable::HitRecord, point3::Point3, ray::Ray, texture::Texture, vector3::Vector3,
+    color::Color, hittable::HitRecord, onb::Onb, point3::Point3, ray::Ray, texture::Texture,
+    vector3::Vector3,
 };
 
 #[derive(Clone, Debug)]
@@ -42,19 +43,19 @@ pub enum Material {
 }
 
 impl Material {
-    pub fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+    pub fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray, f64)> {
         match self {
             Material::Lambertian(l) => l.scatter(r_in, rec),
-            Material::Metal(m) => m.scatter(r_in, rec),
-            Material::Dielectric(d) => d.scatter(r_in, rec),
+            // Material::Metal(m) => m.scatter(r_in, rec),
+            // Material::Dielectric(d) => d.scatter(r_in, rec),
             Material::Isotropic(i) => i.scatter(r_in, rec),
             _ => None,
         }
     }
 
-    pub fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
+    pub fn emitted(&self, r_in: &Ray, rec: &HitRecord, u: f64, v: f64, p: &Point3) -> Color {
         match self {
-            Material::DiffuseLight(d) => d.emitted(u, v, p),
+            Material::DiffuseLight(d) => d.emitted(r_in, rec, u, v, p),
             _ => Color::new(0.0, 0.0, 0.0),
         }
     }
@@ -78,8 +79,9 @@ impl Lambertian {
         }
     }
 
-    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
-        let mut scatter_dir = Vector3::random_in_hemisphere(&rec.normal);
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray, f64)> {
+        let uvw = Onb::new(&rec.normal);
+        let mut scatter_dir = uvw.local(&Vector3::random_cosine_dir());
 
         if scatter_dir.near_zero() {
             scatter_dir = rec.normal.clone();
@@ -87,7 +89,8 @@ impl Lambertian {
 
         let scattered = Ray::new(rec.p.clone(), scatter_dir, r_in.time);
         let attenuation = self.albedo.value(rec.u, rec.v, &rec.p);
-        Some((attenuation, scattered))
+        let pdf = uvw.w.dot(&scattered.dir) / PI;
+        Some((attenuation, scattered, pdf))
     }
 
     fn scattering_pdf(&self, _r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f64 {
@@ -156,10 +159,12 @@ impl Isotropic {
         Isotropic { albedo }
     }
 
-    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray, f64)> {
+        let pdf = 1.0 / (4.0 * PI);
         Some((
             self.albedo.value(rec.u, rec.v, &rec.p),
             Ray::new(rec.p.clone(), Vector3::random_unit_vector(), r_in.time),
+            pdf,
         ))
     }
 }
@@ -169,7 +174,11 @@ impl DiffuseLight {
         DiffuseLight { emit }
     }
 
-    fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
-        self.emit.value(u, v, p)
+    fn emitted(&self, r_in: &Ray, rec: &HitRecord, u: f64, v: f64, p: &Point3) -> Color {
+        if !rec.front_face {
+            Color::new(0.0, 0.0, 0.0)
+        } else {
+            self.emit.value(u, v, p)
+        }
     }
 }

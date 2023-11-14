@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use rand::Rng;
 
 use crate::{aabb::Aabb, point3::Point3};
@@ -49,6 +51,19 @@ impl Vector3 {
         } else {
             -on_unit_sphere
         }
+    }
+
+    pub fn random_cosine_dir() -> Self {
+        let mut rng = rand::thread_rng();
+        let r1: f64 = rng.gen();
+        let r2: f64 = rng.gen();
+
+        let phi = 2.0 * PI * r1;
+        let x = phi.cos() * r2.sqrt();
+        let y = phi.sin() * r2.sqrt();
+        let z = (1.0 - r2).sqrt();
+
+        Vector3 { x, y, z }
     }
 
     pub fn random_unit_vector() -> Self {

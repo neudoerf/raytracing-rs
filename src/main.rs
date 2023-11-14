@@ -328,39 +328,40 @@ fn cornell_box() -> (Hittable, Camera) {
 
     world.push(Quad::new(
         Point3::new(555.0, 0.0, 0.0),
-        Vector3::new(0.0, 555.0, 0.0),
         Vector3::new(0.0, 0.0, 555.0),
+        Vector3::new(0.0, 555.0, 0.0),
         green,
     ));
     world.push(Quad::new(
-        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(0.0, 0.0, 555.0),
+        Vector3::new(0.0, 0.0, -555.0),
         Vector3::new(0.0, 555.0, 0.0),
-        Vector3::new(0.0, 0.0, 555.0),
         red,
     ));
     world.push(Quad::new(
-        Point3::new(343.0, 554.0, 332.0),
-        Vector3::new(-130.0, 0.0, 0.0),
-        Vector3::new(0.0, 0.0, -105.0),
-        light,
-    ));
-    world.push(Quad::new(
-        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(0.0, 555.0, 0.0),
         Vector3::new(555.0, 0.0, 0.0),
         Vector3::new(0.0, 0.0, 555.0),
-        Arc::clone(&white),
-    ));
-    world.push(Quad::new(
-        Point3::new(555.0, 555.0, 555.0),
-        Vector3::new(-555.0, 0.0, 0.0),
-        Vector3::new(0.0, 0.0, -555.0),
         Arc::clone(&white),
     ));
     world.push(Quad::new(
         Point3::new(0.0, 0.0, 555.0),
         Vector3::new(555.0, 0.0, 0.0),
+        Vector3::new(0.0, 0.0, -555.0),
+        Arc::clone(&white),
+    ));
+    world.push(Quad::new(
+        Point3::new(555.0, 0.0, 555.0),
+        Vector3::new(-555.0, 0.0, 0.0),
         Vector3::new(0.0, 555.0, 0.0),
         Arc::clone(&white),
+    ));
+
+    world.push(Quad::new(
+        Point3::new(213.0, 554.0, 227.0),
+        Vector3::new(130.0, 0.0, 0.0),
+        Vector3::new(0.0, 0.0, 105.0),
+        light,
     ));
 
     let box1 = Quad::make_box(
@@ -396,7 +397,7 @@ fn cornell_box() -> (Hittable, Camera) {
         40.0,
         0.0,
         1.0,
-        200,
+        10,
         50,
         Color::new(0.0, 0.0, 0.0),
     );

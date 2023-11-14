@@ -117,17 +117,39 @@ impl Camera {
         world
             .hit(r, Interval::new(0.001, f64::MAX))
             .and_then(|rec| {
-                let color_from_emission = rec.material.emitted(rec.u, rec.v, &rec.p);
+                let color_from_emission = rec.material.emitted(&r, &rec, rec.u, rec.v, &rec.p);
                 rec.material
                     .scatter(r, &rec)
-                    .and_then(|(attenuation, scattered)| {
-                        let scattering_pdf = rec.material.scattering_pdf(r, &rec, &scattered);
-                        let pdf = scattering_pdf;
-                        let color_from_scatter = (attenuation
-                            * scattering_pdf
-                            * self.ray_color(&scattered, depth - 1, world))
-                            / pdf;
-                        Some(&color_from_emission + color_from_scatter)
+                    .and_then(|(attenuation, _scattered, pdf)| {
+                        let mut rng = rand::thread_rng();
+                        let on_light = Point3::new(
+                            rng.gen_range(213.0..343.0),
+                            554.0,
+                            rng.gen_range(227.0..332.0),
+                        );
+                        let to_light = &on_light - &rec.p;
+                        let distance_squared = to_light.length_squared();
+                        let to_light = to_light.unit_vector();
+                        if to_light.dot(&rec.normal) < 0.0 {
+                            Some(color_from_emission.clone())
+                        } else {
+                            let light_area = (343.0 - 213.0) * (332.0 - 227.0);
+                            let light_cosine = to_light.y.abs();
+                            if light_cosine < 0.000001 {
+                                Some(color_from_emission.clone())
+                            } else {
+                                let pdf = distance_squared / (light_cosine * light_area);
+                                let scattered = Ray::new(rec.p.clone(), to_light, r.time);
+                                let scattering_pdf =
+                                    rec.material.scattering_pdf(r, &rec, &scattered);
+
+                                let color_from_scatter = (attenuation
+                                    * scattering_pdf
+                                    * self.ray_color(&scattered, depth - 1, world))
+                                    / pdf;
+                                Some(&color_from_emission + color_from_scatter)
+                            }
+                        }
                     })
                     .or(Some(color_from_emission))
             })
