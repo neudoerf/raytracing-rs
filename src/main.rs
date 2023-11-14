@@ -484,7 +484,7 @@ fn cornell_smoke() -> (Hittable, Camera) {
         Vector3::new(265.0, 0.0, 295.0),
     ));
     world.push(ConstantMedium::new(
-        Arc::new(box1),
+        Box::new(box1),
         0.01,
         Arc::new(Texture::SolidColor(Color::new(0.0, 0.0, 0.0))),
     ));
@@ -500,7 +500,7 @@ fn cornell_smoke() -> (Hittable, Camera) {
         Vector3::new(130.0, 0.0, 65.0),
     ));
     world.push(ConstantMedium::new(
-        Arc::new(box2),
+        Box::new(box2),
         0.01,
         Arc::new(Texture::SolidColor(Color::new(1.0, 1.0, 1.0))),
     ));
@@ -591,13 +591,13 @@ fn final_scene(image_width: u32, samples_per_pixel: usize, max_depth: u32) -> (H
     let boundary = Sphere::new(Point3::new(360.0, 150.0, 145.0), 70.0, Arc::clone(&glass));
     world.push(boundary.clone());
     world.push(ConstantMedium::new(
-        Arc::new(boundary),
+        Box::new(boundary),
         0.2,
         Arc::new(Texture::SolidColor(Color::new(0.2, 0.4, 0.9))),
     ));
     let boundary = Sphere::new(Point3::new(0.0, 0.0, 0.0), 5000.0, Arc::clone(&glass));
     world.push(ConstantMedium::new(
-        Arc::new(boundary),
+        Box::new(boundary),
         0.0001,
         Arc::new(Texture::SolidColor(Color::new(1.0, 1.0, 1.0))),
     ));

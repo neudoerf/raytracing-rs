@@ -15,13 +15,13 @@ use super::{HitRecord, Hittable};
 
 #[derive(Clone)]
 pub struct ConstantMedium {
-    boundary: Arc<Hittable>,
+    boundary: Box<Hittable>,
     neg_inv_density: f64,
     phase_func: Arc<Material>,
 }
 
 impl ConstantMedium {
-    pub fn new(boundary: Arc<Hittable>, d: f64, a: Arc<Texture>) -> Hittable {
+    pub fn new(boundary: Box<Hittable>, d: f64, a: Arc<Texture>) -> Hittable {
         Hittable::ConstantMedium(ConstantMedium {
             boundary,
             neg_inv_density: (-1.0 / d),
