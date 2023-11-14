@@ -121,10 +121,13 @@ impl Camera {
                 rec.material
                     .scatter(r, &rec)
                     .and_then(|(attenuation, scattered)| {
-                        Some(
-                            &color_from_emission
-                                + attenuation * self.ray_color(&scattered, depth - 1, world),
-                        )
+                        let scattering_pdf = rec.material.scattering_pdf(r, &rec, &scattered);
+                        let pdf = scattering_pdf;
+                        let color_from_scatter = (attenuation
+                            * scattering_pdf
+                            * self.ray_color(&scattered, depth - 1, world))
+                            / pdf;
+                        Some(&color_from_emission + color_from_scatter)
                     })
                     .or(Some(color_from_emission))
             })

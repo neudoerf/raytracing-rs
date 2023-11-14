@@ -42,6 +42,15 @@ impl Vector3 {
         }
     }
 
+    pub fn random_in_hemisphere(normal: &Vector3) -> Self {
+        let on_unit_sphere = Self::random_unit_vector();
+        if on_unit_sphere.dot(normal) > 0.0 {
+            on_unit_sphere
+        } else {
+            -on_unit_sphere
+        }
+    }
+
     pub fn random_unit_vector() -> Self {
         Vector3::random_in_unit_sphere().unit_vector()
     }
@@ -301,6 +310,14 @@ impl std::ops::Neg for &Vector3 {
             y: -self.y,
             z: -self.z,
         }
+    }
+}
+
+impl std::ops::Neg for Vector3 {
+    type Output = Vector3;
+
+    fn neg(self) -> Self::Output {
+        -&self
     }
 }
 

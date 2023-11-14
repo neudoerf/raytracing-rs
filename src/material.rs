@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{f64::consts::PI, sync::Arc};
 
 use rand::Rng;
 
@@ -58,6 +58,13 @@ impl Material {
             _ => Color::new(0.0, 0.0, 0.0),
         }
     }
+
+    pub fn scattering_pdf(&self, r_in: &Ray, rec: &HitRecord, scattered: &Ray) -> f64 {
+        match self {
+            Material::Lambertian(l) => l.scattering_pdf(r_in, rec, scattered),
+            _ => todo!(),
+        }
+    }
 }
 
 impl Lambertian {
@@ -72,7 +79,7 @@ impl Lambertian {
     }
 
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
-        let mut scatter_dir = &rec.normal + &Vector3::random_unit_vector();
+        let mut scatter_dir = Vector3::random_in_hemisphere(&rec.normal);
 
         if scatter_dir.near_zero() {
             scatter_dir = rec.normal.clone();
@@ -81,6 +88,10 @@ impl Lambertian {
         let scattered = Ray::new(rec.p.clone(), scatter_dir, r_in.time);
         let attenuation = self.albedo.value(rec.u, rec.v, &rec.p);
         Some((attenuation, scattered))
+    }
+
+    fn scattering_pdf(&self, _r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f64 {
+        1.0 / (2.0 * PI)
     }
 }
 

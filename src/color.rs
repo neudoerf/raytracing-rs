@@ -159,6 +159,46 @@ impl std::ops::Mul<&Color> for f64 {
     }
 }
 
+impl std::ops::Div<f64> for &Color {
+    type Output = Color;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        Color {
+            r: self.r / rhs,
+            g: self.g / rhs,
+            b: self.b / rhs,
+        }
+    }
+}
+
+impl std::ops::Div<f64> for Color {
+    type Output = Color;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        &self / rhs
+    }
+}
+
+impl std::ops::Div<&Color> for f64 {
+    type Output = Color;
+
+    fn div(self, rhs: &Color) -> Self::Output {
+        Color {
+            r: self / rhs.r,
+            g: self / rhs.g,
+            b: self / rhs.b,
+        }
+    }
+}
+
+impl std::ops::Div<Color> for f64 {
+    type Output = Color;
+
+    fn div(self, rhs: Color) -> Self::Output {
+        self / &rhs
+    }
+}
+
 #[inline(always)]
 fn linear_to_gamma(linear_component: f64) -> f64 {
     linear_component.sqrt()
