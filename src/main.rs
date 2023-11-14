@@ -1,3 +1,15 @@
+mod aabb;
+mod camera;
+mod color;
+mod hittable;
+mod interval;
+mod material;
+mod perlin;
+mod point3;
+mod ray;
+mod texture;
+mod vector3;
+
 use std::{
     env::{self},
     sync::Arc,
@@ -17,18 +29,6 @@ use crate::{
     material::DiffuseLight,
     texture::{Image, Noise},
 };
-
-mod aabb;
-mod camera;
-mod color;
-mod hittable;
-mod interval;
-mod material;
-mod perlin;
-mod point3;
-mod ray;
-mod texture;
-mod vector3;
 
 fn random_spheres(image_width: u32, samples_per_pixel: usize) -> (Hittable, Camera) {
     let mut world: Vec<Hittable> = vec![];
