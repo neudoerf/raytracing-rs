@@ -124,9 +124,9 @@ impl Camera {
                         ScatterRecord::Ray(attenuation, scatter) => {
                             Some(attenuation * self.ray_color(&scatter, depth - 1, world, lights))
                         }
-                        ScatterRecord::Pdf(attenuation, p) => {
+                        ScatterRecord::Pdf(attenuation, rec_pdf) => {
                             let light_pdf = pdf::Hittable::new(&lights, rec.p.clone());
-                            let p = pdf::Mixture::new(&light_pdf, &p);
+                            let p = pdf::Mixture::new(&light_pdf, &rec_pdf);
                             let scattered = Ray::new(rec.p.clone(), p.generate(), r.time);
                             let pdf_val = p.value(&scattered.dir);
 

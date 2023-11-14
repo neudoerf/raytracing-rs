@@ -413,7 +413,7 @@ fn cornell_box() -> (Hittable, Hittable, Camera) {
     (HittableList::new(world), HittableList::new(lights), cam)
 }
 
-fn cornell_smoke() -> (Hittable, Camera) {
+fn cornell_smoke() -> (Hittable, Hittable, Camera) {
     let mut world: Vec<Hittable> = vec![];
 
     let red = Arc::new(Material::Lambertian(Lambertian::new_solid(Color::new(
@@ -442,12 +442,6 @@ fn cornell_smoke() -> (Hittable, Camera) {
         red,
     ));
     world.push(Quad::new(
-        Point3::new(113.0, 554.0, 127.0),
-        Vector3::new(330.0, 0.0, 0.0),
-        Vector3::new(0.0, 0.0, 305.0),
-        light,
-    ));
-    world.push(Quad::new(
         Point3::new(0.0, 0.0, 0.0),
         Vector3::new(555.0, 0.0, 0.0),
         Vector3::new(0.0, 0.0, 555.0),
@@ -465,6 +459,14 @@ fn cornell_smoke() -> (Hittable, Camera) {
         Vector3::new(0.0, 555.0, 0.0),
         Arc::clone(&white),
     ));
+
+    let light = Quad::new(
+        Point3::new(113.0, 554.0, 127.0),
+        Vector3::new(330.0, 0.0, 0.0),
+        Vector3::new(0.0, 0.0, 305.0),
+        light,
+    );
+    world.push(light.clone());
 
     let box1 = Quad::make_box(
         &Point3::new(0.0, 0.0, 0.0),
@@ -512,10 +514,14 @@ fn cornell_smoke() -> (Hittable, Camera) {
         Color::new(0.0, 0.0, 0.0),
     );
 
-    (HittableList::new(world), cam)
+    (HittableList::new(world), light, cam)
 }
 
-fn final_scene(image_width: u32, samples_per_pixel: usize, max_depth: u32) -> (Hittable, Camera) {
+fn final_scene(
+    image_width: u32,
+    samples_per_pixel: usize,
+    max_depth: u32,
+) -> (Hittable, Hittable, Camera) {
     let mut rng = rand::thread_rng();
     let mut boxes1: Vec<Hittable> = vec![];
     let ground = Arc::new(Material::Lambertian(Lambertian::new_solid(Color::new(
@@ -545,18 +551,21 @@ fn final_scene(image_width: u32, samples_per_pixel: usize, max_depth: u32) -> (H
     }
 
     let mut world: Vec<Hittable> = vec![];
+    let mut lights: Vec<Hittable> = vec![];
 
     world.push(BvhNode::new(&boxes1, 0, boxes1.len()));
 
-    let light = Arc::new(Material::DiffuseLight(DiffuseLight::new(Arc::new(
+    let light_mat = Arc::new(Material::DiffuseLight(DiffuseLight::new(Arc::new(
         Texture::SolidColor(Color::new(7.0, 7.0, 7.0)),
     ))));
-    world.push(Quad::new(
+    let light = Quad::new(
         Point3::new(123.0, 554.0, 147.0),
         Vector3::new(300.0, 0.0, 0.0),
         Vector3::new(0.0, 0.0, 265.0),
-        light,
-    ));
+        light_mat,
+    );
+    world.push(light.clone());
+    lights.push(light);
 
     let center1 = Point3::new(400.0, 400.0, 200.0);
     let center2 = &center1 + Vector3::new(30.0, 0.0, 0.0);
@@ -570,11 +579,9 @@ fn final_scene(image_width: u32, samples_per_pixel: usize, max_depth: u32) -> (H
         sphere_material,
     )));
 
-    world.push(Sphere::new(
-        Point3::new(260.0, 150.0, 45.0),
-        50.0,
-        Arc::clone(&glass),
-    ));
+    let glass_sphere = Sphere::new(Point3::new(260.0, 150.0, 45.0), 50.0, Arc::clone(&glass));
+    world.push(glass_sphere.clone());
+    lights.push(glass_sphere);
     world.push(Sphere::new(
         Point3::new(0.0, 150.0, 145.0),
         50.0,
@@ -641,7 +648,7 @@ fn final_scene(image_width: u32, samples_per_pixel: usize, max_depth: u32) -> (H
         Color::new(0.0, 0.0, 0.0),
     );
 
-    (HittableList::new(world), cam)
+    (HittableList::new(world), HittableList::new(lights), cam)
 }
 
 fn main() {
@@ -655,9 +662,9 @@ fn main() {
         // 5 => quads(),
         // 6 => simple_light(),
         7 => cornell_box(),
-        // 8 => cornell_smoke(),
-        // 9 => final_scene(1200, 10000, 40),
-        // _ => final_scene(600, 100, 50),
+        8 => cornell_smoke(),
+        9 => final_scene(1200, 10000, 40),
+        10 => final_scene(600, 100, 50),
         _ => panic!(),
     };
 

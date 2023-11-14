@@ -99,11 +99,17 @@ impl Sphere {
             Interval::new(0.001, f64::MAX),
         )
         .and_then(|_| {
-            let cos_theta_max =
-                (1.0 - self.radius * self.radius / (&self.center1 - o).length_squared()).sqrt();
-            let solid_angle = 2.0 * PI * (1.0 - cos_theta_max);
+            let r_sq = self.radius * self.radius;
+            let c_o_sq = (&self.center1 - o).length_squared();
+            if r_sq > c_o_sq {
+                Some(0.0)
+            } else {
+                let cos_theta_max =
+                    (1.0 - self.radius * self.radius / (&self.center1 - o).length_squared()).sqrt();
+                let solid_angle = 2.0 * PI * (1.0 - cos_theta_max);
 
-            Some(1.0 / solid_angle)
+                Some(1.0 / solid_angle)
+            }
         })
         .unwrap_or(0.0)
     }

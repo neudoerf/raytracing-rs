@@ -73,7 +73,8 @@ impl Material {
     pub fn scattering_pdf(&self, r_in: &Ray, rec: &HitRecord, scattered: &Ray) -> f64 {
         match self {
             Material::Lambertian(l) => l.scattering_pdf(r_in, rec, scattered),
-            _ => todo!(),
+            Material::Isotropic(i) => i.scattering_pdf(r_in, rec, scattered),
+            _ => 0.0,
         }
     }
 }
@@ -167,6 +168,10 @@ impl Isotropic {
             self.albedo.value(rec.u, rec.v, &rec.p),
             pdf::Sphere::new(),
         ))
+    }
+
+    pub fn scattering_pdf(&self, _r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f64 {
+        1.0 / (4.0 * PI)
     }
 }
 

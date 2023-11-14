@@ -136,6 +136,12 @@ impl From<Point3> for Vector3 {
     }
 }
 
+impl std::fmt::Display for &Vector3 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {}, {})", self.x, self.y, self.z)
+    }
+}
+
 impl std::ops::Add for &Vector3 {
     type Output = Vector3;
 
