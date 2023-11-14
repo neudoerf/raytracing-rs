@@ -1,33 +1,17 @@
-mod aabb;
-mod camera;
-mod color;
-mod hittable;
-mod interval;
-mod material;
-mod perlin;
-mod point3;
-mod ray;
-mod texture;
-mod vector3;
-
 use std::{
     env::{self},
     sync::Arc,
 };
 
-use camera::Camera;
-use color::Color;
-use hittable::{BvhNode, Hittable, HittableList, Sphere};
-use material::{Dielectric, Lambertian, Material, Metal};
-use point3::Point3;
 use rand::Rng;
-use texture::{Checker, Texture};
-use vector3::Vector3;
-
-use crate::{
-    hittable::{ConstantMedium, Quad, RotateY, Translate},
-    material::DiffuseLight,
-    texture::{Image, Noise},
+use raytracing_rs::{
+    camera::Camera,
+    color::Color,
+    hittable::{BvhNode, ConstantMedium, Hittable, HittableList, Quad, RotateY, Sphere, Translate},
+    material::{Dielectric, DiffuseLight, Lambertian, Material, Metal},
+    point3::Point3,
+    texture::{Checker, Image, Noise, Texture},
+    vector3::Vector3,
 };
 
 fn random_spheres(image_width: u32, samples_per_pixel: usize) -> (Hittable, Camera) {
