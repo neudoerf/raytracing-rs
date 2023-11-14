@@ -384,9 +384,9 @@ fn cornell_box() -> (Hittable, Camera) {
         &Point3::new(165.0, 330.0, 165.0),
         Arc::clone(&white),
     );
-    let box1 = Hittable::RotateY(RotateY::new(Arc::new(box1), 15.0));
+    let box1 = Hittable::RotateY(RotateY::new(Box::new(box1), 15.0));
     let box1 = Hittable::Translate(Translate::new(
-        Arc::new(box1),
+        Box::new(box1),
         Vector3::new(265.0, 0.0, 295.0),
     ));
     world.push(box1);
@@ -396,9 +396,9 @@ fn cornell_box() -> (Hittable, Camera) {
         &Point3::new(165.0, 165.0, 165.0),
         white,
     );
-    let box2 = Hittable::RotateY(RotateY::new(Arc::new(box2), -18.0));
+    let box2 = Hittable::RotateY(RotateY::new(Box::new(box2), -18.0));
     let box2 = Hittable::Translate(Translate::new(
-        Arc::new(box2),
+        Box::new(box2),
         Vector3::new(130.0, 0.0, 65.0),
     ));
     world.push(box2);
@@ -478,9 +478,9 @@ fn cornell_smoke() -> (Hittable, Camera) {
         &Point3::new(165.0, 330.0, 165.0),
         Arc::clone(&white),
     );
-    let box1 = Hittable::RotateY(RotateY::new(Arc::new(box1), 15.0));
+    let box1 = Hittable::RotateY(RotateY::new(Box::new(box1), 15.0));
     let box1 = Hittable::Translate(Translate::new(
-        Arc::new(box1),
+        Box::new(box1),
         Vector3::new(265.0, 0.0, 295.0),
     ));
     world.push(ConstantMedium::new(
@@ -494,9 +494,9 @@ fn cornell_smoke() -> (Hittable, Camera) {
         &Point3::new(165.0, 165.0, 165.0),
         white,
     );
-    let box2 = Hittable::RotateY(RotateY::new(Arc::new(box2), -18.0));
+    let box2 = Hittable::RotateY(RotateY::new(Box::new(box2), -18.0));
     let box2 = Hittable::Translate(Translate::new(
-        Arc::new(box2),
+        Box::new(box2),
         Vector3::new(130.0, 0.0, 65.0),
     ));
     world.push(ConstantMedium::new(
@@ -627,8 +627,8 @@ fn final_scene(image_width: u32, samples_per_pixel: usize, max_depth: u32) -> (H
     }
 
     world.push(Hittable::Translate(Translate::new(
-        Arc::new(Hittable::RotateY(RotateY::new(
-            Arc::new(BvhNode::new(&boxes2, 0, boxes2.len())),
+        Box::new(Hittable::RotateY(RotateY::new(
+            Box::new(BvhNode::new(&boxes2, 0, boxes2.len())),
             15.0,
         ))),
         Vector3::new(-100.0, 270.0, 395.0),

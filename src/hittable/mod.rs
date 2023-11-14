@@ -5,8 +5,6 @@ mod list;
 mod quad;
 mod sphere;
 
-use std::sync::Arc;
-
 use crate::{aabb::Aabb, interval::Interval, point3::Point3, ray::Ray, vector3::Vector3};
 
 pub use self::{
@@ -16,14 +14,14 @@ pub use self::{
 
 #[derive(Clone)]
 pub struct Translate {
-    object: Arc<Hittable>,
+    object: Box<Hittable>,
     offset: Vector3,
     bbox: Aabb,
 }
 
 #[derive(Clone)]
 pub struct RotateY {
-    object: Arc<Hittable>,
+    object: Box<Hittable>,
     sin_theta: f64,
     cos_theta: f64,
     bbox: Aabb,
@@ -67,7 +65,7 @@ impl Hittable {
 }
 
 impl Translate {
-    pub fn new(object: Arc<Hittable>, offset: Vector3) -> Self {
+    pub fn new(object: Box<Hittable>, offset: Vector3) -> Self {
         let bbox = &object.bounding_box() + &offset;
         Translate {
             object,
@@ -91,7 +89,7 @@ impl Translate {
 }
 
 impl RotateY {
-    pub fn new(object: Arc<Hittable>, angle: f64) -> Self {
+    pub fn new(object: Box<Hittable>, angle: f64) -> Self {
         let radians = angle.to_radians();
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();
