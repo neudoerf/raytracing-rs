@@ -498,7 +498,7 @@ fn main() {
         4 => two_perlin_spheres(),
         5 => quads(),
         6 => simple_light(),
-        9 => final_scene(1200, 1000, 100),
+        9 => final_scene(1200, 10000, 40),
         _ => final_scene(600, 100, 50),
     };
 
