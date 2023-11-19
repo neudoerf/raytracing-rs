@@ -25,7 +25,7 @@ impl ConstantMedium {
         Hittable::ConstantMedium(ConstantMedium {
             boundary,
             neg_inv_density: (-1.0 / d),
-            phase_func: Arc::new(Material::Isotropic(Isotropic::new(a))),
+            phase_func: Arc::new(Isotropic::new(a)),
         })
     }
 

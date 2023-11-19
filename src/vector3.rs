@@ -1,10 +1,11 @@
 use std::f64::consts::PI;
 
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 
 use crate::{aabb::Aabb, point3::Point3};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Vector3 {
     pub x: f64,
     pub y: f64,

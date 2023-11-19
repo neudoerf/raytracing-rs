@@ -8,7 +8,7 @@ use crate::{
     pdf::{self, Pdf},
     point3::Point3,
     ray::Ray,
-    texture::Texture,
+    texture::{SolidColor, Texture},
     vector3::Vector3,
 };
 
@@ -80,14 +80,14 @@ impl Material {
 }
 
 impl Lambertian {
-    pub fn new(albedo: Arc<Texture>) -> Self {
-        Lambertian { albedo }
+    pub fn new(albedo: Arc<Texture>) -> Material {
+        Material::Lambertian(Lambertian { albedo })
     }
 
-    pub fn new_solid(albedo: Color) -> Self {
-        Lambertian {
-            albedo: Arc::new(Texture::SolidColor(albedo)),
-        }
+    pub fn new_solid(albedo: Color) -> Material {
+        Material::Lambertian(Lambertian {
+            albedo: Arc::new(SolidColor::new(albedo)),
+        })
     }
 
     fn scatter<'a>(&'a self, _r_in: &Ray, rec: &'a HitRecord) -> Option<ScatterRecord> {
@@ -107,8 +107,8 @@ impl Lambertian {
 }
 
 impl Metal {
-    pub fn new(albedo: Color, fuzz: f64) -> Self {
-        Metal { albedo, fuzz }
+    pub fn new(albedo: Color, fuzz: f64) -> Material {
+        Material::Metal(Metal { albedo, fuzz })
     }
 
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<ScatterRecord> {
@@ -124,8 +124,8 @@ impl Metal {
 }
 
 impl Dielectric {
-    pub fn new(ir: f64) -> Self {
-        Dielectric { ir }
+    pub fn new(ir: f64) -> Material {
+        Material::Dielectric(Dielectric { ir })
     }
 
     fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
@@ -159,8 +159,8 @@ impl Dielectric {
 }
 
 impl Isotropic {
-    pub fn new(albedo: Arc<Texture>) -> Self {
-        Isotropic { albedo }
+    pub fn new(albedo: Arc<Texture>) -> Material {
+        Material::Isotropic(Isotropic { albedo })
     }
 
     fn scatter(&self, _r_in: &Ray, rec: &HitRecord) -> Option<ScatterRecord> {
@@ -176,8 +176,8 @@ impl Isotropic {
 }
 
 impl DiffuseLight {
-    pub fn new(emit: Arc<Texture>) -> Self {
-        DiffuseLight { emit }
+    pub fn new(emit: Arc<Texture>) -> Material {
+        Material::DiffuseLight(DiffuseLight { emit })
     }
 
     fn emitted(&self, _r_in: &Ray, rec: &HitRecord, u: f64, v: f64, p: &Point3) -> Color {

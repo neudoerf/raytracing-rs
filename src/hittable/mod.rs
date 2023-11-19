@@ -83,13 +83,13 @@ impl Hittable {
 }
 
 impl Translate {
-    pub fn new(object: Box<Hittable>, offset: Vector3) -> Self {
+    pub fn new(object: Box<Hittable>, offset: Vector3) -> Hittable {
         let bbox = &object.bounding_box() + &offset;
-        Translate {
+        Hittable::Translate(Translate {
             object,
             offset,
             bbox,
-        }
+        })
     }
 
     fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
@@ -107,7 +107,7 @@ impl Translate {
 }
 
 impl RotateY {
-    pub fn new(object: Box<Hittable>, angle: f64) -> Self {
+    pub fn new(object: Box<Hittable>, angle: f64) -> Hittable {
         let radians = angle.to_radians();
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();
@@ -132,12 +132,12 @@ impl RotateY {
             }
         }
 
-        RotateY {
+        Hittable::RotateY(RotateY {
             object,
             sin_theta,
             cos_theta,
             bbox: Aabb::new_from_points(&min, &max),
-        }
+        })
     }
 
     fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {

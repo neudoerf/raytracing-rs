@@ -1,6 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 use crate::vector3::Vector3;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Point3 {
     pub x: f64,
     pub y: f64,

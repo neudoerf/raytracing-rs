@@ -9,5 +9,6 @@ pub mod pdf;
 pub mod perlin;
 pub mod point3;
 pub mod ray;
+pub mod scene;
 pub mod texture;
 pub mod vector3;

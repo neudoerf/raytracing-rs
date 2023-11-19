@@ -35,10 +35,10 @@ impl Sphere {
         center2: Point3,
         radius: f64,
         material: Arc<Material>,
-    ) -> Self {
+    ) -> Hittable {
         let rvec = Vector3::new(radius, radius, radius);
         let center_vec = &center2 - &center1;
-        Sphere {
+        Hittable::Sphere(Sphere {
             center1: center1.clone(),
             radius,
             material,
@@ -47,7 +47,7 @@ impl Sphere {
                 &Aabb::new_from_points(&(&center1 - &rvec), &(&center1 + &rvec)),
                 &Aabb::new_from_points(&(&center2 - &rvec), &(&center2 + &rvec)),
             ),
-        }
+        })
     }
 
     pub fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {

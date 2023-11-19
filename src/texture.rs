@@ -23,8 +23,13 @@ pub struct Noise {
 }
 
 #[derive(Clone, Debug)]
+pub struct SolidColor {
+    color: Color,
+}
+
+#[derive(Clone, Debug)]
 pub enum Texture {
-    SolidColor(Color),
+    SolidColor(SolidColor),
     Checker(Checker),
     Image(Image),
     Noise(Noise),
@@ -33,7 +38,7 @@ pub enum Texture {
 impl Texture {
     pub fn value(&self, u: f64, v: f64, p: &Point3) -> Color {
         match self {
-            Texture::SolidColor(c) => c.clone(),
+            Texture::SolidColor(c) => c.color.clone(),
             Texture::Checker(checker) => checker.value(u, v, p),
             Texture::Image(image) => image.value(u, v, p),
             Texture::Noise(noise) => noise.value(u, v, p),
@@ -41,20 +46,26 @@ impl Texture {
     }
 }
 
+impl SolidColor {
+    pub fn new(color: Color) -> Texture {
+        Texture::SolidColor(SolidColor { color })
+    }
+}
+
 impl Checker {
-    pub fn new(scale: f64, even: Arc<Texture>, odd: Arc<Texture>) -> Checker {
-        Checker {
+    pub fn new(scale: f64, even: Arc<Texture>, odd: Arc<Texture>) -> Texture {
+        Texture::Checker(Checker {
             inv_scale: 1.0 / scale,
             even,
             odd,
-        }
+        })
     }
 
-    pub fn new_solid(scale: f64, even: Color, odd: Color) -> Checker {
+    pub fn new_solid(scale: f64, even: Color, odd: Color) -> Texture {
         Checker::new(
             scale,
-            Arc::new(Texture::SolidColor(even)),
-            Arc::new(Texture::SolidColor(odd)),
+            Arc::new(SolidColor::new(even)),
+            Arc::new(SolidColor::new(odd)),
         )
     }
 
@@ -73,10 +84,10 @@ impl Checker {
 }
 
 impl Image {
-    pub fn new(filename: &str) -> Image {
-        Image {
+    pub fn new(filename: &str) -> Texture {
+        Texture::Image(Image {
             image: Arc::new(image::open(filename).unwrap().into_rgb8()),
-        }
+        })
     }
 
     fn value(&self, u: f64, v: f64, _p: &Point3) -> Color {
@@ -102,11 +113,11 @@ impl Image {
 }
 
 impl Noise {
-    pub fn new(scale: f64) -> Noise {
-        Noise {
+    pub fn new(scale: f64) -> Texture {
+        Texture::Noise(Noise {
             noise: Perlin::new(),
             scale,
-        }
+        })
     }
 
     fn value(&self, _u: f64, _v: f64, p: &Point3) -> Color {
